@@ -1,2 +1,3 @@
 from .test import test_print
-from .get_exchange_rate import get_exchange_rate
+from .create_position import create_position
+from .close_position import close_position

@@ -1,0 +1,60 @@
+https://github.com/bybit-exchange/api-connectors/blob/master/official-http/python/test.py
+
+
+https://api2-testnet.bybit.com/v3/linear/private/order/create
+
+action: "Open"
+basePrice: "42205"
+closeOnTrigger: false
+coin: "BTC"
+leverage: 10
+leverageE2: "1000"
+liqPrice: "999999.00"
+orderType: "Limit"
+positionIdx: 2
+preCreateId: "c6405eee-f2b7-49e7-bb06-f95052accaf9"
+price: "42199"
+qty: "0.001"
+qtyType: 0
+qtyTypeValue: 0
+qtyX: "100000"
+reduceOnly: false
+side: "Sell"
+slTriggerBy: "LastPrice"
+symbol: "BTCUSDT"
+timeInForce: "GoodTillCancel"
+tpTriggerBy: "LastPrice"
+triggerBy: "LastPrice"
+triggerPrice: ""
+type: "Activity"
+value: 42.199
+
+# sold 0.001 of short
+action: "PositionClose"
+closeOnTrigger: true
+createType: "CreateByClosing"
+leverageE2: "100"
+orderType: "Limit"
+positionIdx: "2"
+price: "44206.5"
+qtyX: "100000"
+side: "Buy"
+symbol: "BTCUSDT"
+timeInForce: "GoodTillCancel"
+type: "Activity"
+
+# sold one 0.001 long
+action: "PositionClose"
+closeOnTrigger: true
+createType: "CreateByClosing"
+leverageE2: "100"
+orderType: "Limit"
+positionIdx: "1"
+price: "44207"
+qtyX: "100000"
+side: "Sell"
+symbol: "BTCUSDT"
+timeInForce: "GoodTillCancel"
+type: "Activity"
+
+

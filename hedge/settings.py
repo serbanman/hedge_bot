@@ -121,10 +121,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-BYBIT_ROOT = ''
+BYBIT_ROOT = 'https://api-testnet.bybit.com'
 BYBIT_LOGIN = ''
 BYBIT_PASSWORD = ''
 BYBIT_2FA = ''
 
-BYBIT_API = ''
-BYBIT_SECRET = ''
+BYBIT_API = 'GBC31yHQJlhjt6fVW2'
+BYBIT_SECRET = 'LG7zRv1beaAfHec2rih2QXSjZ5gHW7aqvTho'

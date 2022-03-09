@@ -12,3 +12,9 @@ class Preorder(models.Model):
     sum_btc = models.DecimalField(max_digits=16, decimal_places=12, null=True, blank=True)
     buyer = models.CharField(max_length=30, null=True, blank=True)
     finishing_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return '%s %s %s' % (self.created_at, self.sum_rub, self.buyer)
+
+    class Meta:
+        ordering = ['-created_at', 'buyer']
