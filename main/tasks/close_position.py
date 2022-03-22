@@ -4,14 +4,19 @@ from celery import shared_task
 
 from ..models import HedgeLog, Preorder, Order
 from ..models.orders import STATUS_NEW, STATUS_FILLED
-from ..models.positions import STATUS_CLOSED
+from ..models.positions import STATUS_CLOSED, Position
 from ..models.hedge_logs import STATUS_SUCCESS, STATUS_ERROR
 from ..services import OperationsService
 
 
 @shared_task
-def close_position(preorder_id: str):
+def close_position(sum_btc: float, position_id: str, preorder_id: str = None):
     SLEEP_ITERATION = 10
+    if preorder_id:
+        preorder_instance = Preorder.objects.get(id=preorder_id)
+    else:
+        preorder_instance = None
+
     log = HedgeLog(
         origin="close_position START",
         status=STATUS_SUCCESS,
@@ -20,9 +25,11 @@ def close_position(preorder_id: str):
     log.save()
 
     service = OperationsService(preorder_id)
-    preorder_instance = Preorder.objects.get(id=preorder_id)
-    position_instance = preorder_instance.positions.first()
-    order_id = service.create_buy_order(preorder_id=preorder_id, position_id=position_instance.id)
+    try:
+        sum_btc = float(sum_btc)
+    except:
+        return
+    order_id = service.create_buy_order(sum_btc=sum_btc)
     if order_id is not None:
         order_instance = Order.objects.get(id=order_id)
         service.is_order_filled(order_instance.order_id)
@@ -57,6 +64,7 @@ def close_position(preorder_id: str):
             service.order_price_handler(order_instance.order_id, 'buy')
             counter += 1
         try:
+            position_instance = Position.objects.get(id=position_id)
             order_instance.refresh_from_db()
             position_instance.status = STATUS_CLOSED
             position_instance.order_out = order_instance

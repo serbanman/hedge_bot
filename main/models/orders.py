@@ -37,6 +37,7 @@ class Order(models.Model):
     status = models.CharField(max_length=30, null=True, blank=True, choices=STATUSES)
     text = models.TextField(max_length=300, null=True, blank=True)
     btc_quantity = models.DecimalField(max_digits=16, decimal_places=6, null=True, blank=True)
+    sum_usd = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     btc_rate = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     usd_rate = models.DecimalField(max_digits=6, decimal_places=1, null=True, blank=True)

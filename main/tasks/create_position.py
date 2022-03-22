@@ -9,9 +9,12 @@ import time
 
 
 @shared_task
-def create_position(preorder_id: str):
+def create_position(sum_btc, preorder_id: str = None):
     SLEEP_ITERATION = 10
-    preorder_instance = Preorder.objects.get(id=preorder_id)
+    if preorder_id:
+        preorder_instance = Preorder.objects.get(id=preorder_id)
+    else:
+        preorder_instance = None
     log = HedgeLog(
         preorder=preorder_instance,
         origin="create_position START",
@@ -20,8 +23,11 @@ def create_position(preorder_id: str):
     )
     log.save()
     service = OperationsService(preorder_id)
-
-    order_id = service.create_sell_order(sum_rub=preorder_instance.sum_rub, preorder_id=preorder_id)
+    try:
+        sum_btc = float(sum_btc)
+    except:
+        return
+    order_id = service.create_sell_order(sum_btc=sum_btc)
     if order_id is not None:
         order_instance = Order.objects.get(id=order_id)
         service.is_order_filled(order_instance.order_id)

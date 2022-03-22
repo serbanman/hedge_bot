@@ -10,7 +10,7 @@ from ..models.orders import TYPE_BUY, TYPE_SELL, STATUS_FILLED, STATUS_NEW, STAT
 class OperationsService:
     SPREAD = 1
 
-    def __init__(self, preorder_id, test=True):
+    def __init__(self, preorder_id=None, test=True):
         try:
             self.preorder_instance = Preorder.objects.get(id=preorder_id)
         except Exception as ex:
@@ -44,6 +44,7 @@ class OperationsService:
                 break
             except Exception as ex:
                 self.init_connect_counter += 1
+                time.sleep(5)
                 log = HedgeLog(
                     preorder=self.preorder_instance,
                     origin="OperationsService init connection",
@@ -85,6 +86,7 @@ class OperationsService:
                     )
                     log.save()
                     counter += 1
+                    time.sleep(5)
                 elif gross_data[0]['ret_msg'] != 'OK':
                     log = HedgeLog(
                         preorder=self.preorder_instance,
@@ -94,6 +96,7 @@ class OperationsService:
                     )
                     log.save()
                     counter += 1
+                    time.sleep(5)
                 else:
                     log = HedgeLog(
                         preorder=self.preorder_instance,
@@ -103,6 +106,7 @@ class OperationsService:
                     )
                     log.save()
                     counter += 1
+                    time.sleep(5)
         except Exception as ex:
             log = HedgeLog(
                 preorder=self.preorder_instance,
@@ -130,15 +134,15 @@ class OperationsService:
 
         return rate
 
-    def create_sell_order(self, sum_rub: float, preorder_id: str = None):  # sell order == buy short
+    def create_sell_order(self, sum_btc: float):  # sell order == buy short
         rate_btc_usdt = self.get_btc_usdt_rate()
-        rate_usd_rub = self.get_usd_rub_rate()
-        if rate_usd_rub == float('inf') or rate_btc_usdt == float('inf'):
+        # rate_usd_rub = self.get_usd_rub_rate()
+        if rate_btc_usdt == float('inf'):
             log = HedgeLog(
                 preorder=self.preorder_instance,
                 origin="create_sell_order stage rates",
                 status=STATUS_ERROR,
-                text=f"Didn't get proper rates: btc {rate_btc_usdt}; rub {rate_usd_rub}"
+                text=f"Didn't get proper rates: btc {rate_btc_usdt}"
             )
             log.save()
             return
@@ -147,12 +151,12 @@ class OperationsService:
                 preorder=self.preorder_instance,
                 origin="create_sell_order stage rates",
                 status=STATUS_SUCCESS,
-                text=f"Got rates: btc {rate_btc_usdt}; rub {rate_usd_rub}"
+                text=f"Got rates: btc {rate_btc_usdt}"
             )
             log.save()
 
-        sum_usd = float(sum_rub) / rate_usd_rub
-        btc_qty = '%.3f' % (sum_usd / rate_btc_usdt)
+        sum_usd = float(sum_btc) * rate_btc_usdt
+        btc_qty = '%.3f' % sum_btc
         try:
             RETRY_COUNT = 5
             counter = 0
@@ -170,18 +174,15 @@ class OperationsService:
                 order_id = ''
                 if new_order_gross_data[0]['ret_msg'] == 'OK' and new_order_gross_data[0]['result']:
                     order_id = new_order_gross_data[0]['result']['order_id']
-                    if preorder_id:
-                        preorder_instance = Preorder.objects.get(id=preorder_id)
-                    else:
-                        preorder_instance = None
+
                     new_order = Order(
-                        preorder=preorder_instance,
+                        preorder=self.preorder_instance,
                         order_id=order_id,
                         type=TYPE_SELL,
                         btc_quantity=btc_qty,
                         price=rate_btc_usdt - self.SPREAD,
                         btc_rate=rate_btc_usdt,
-                        usd_rate=rate_usd_rub
+                        sum_usd=sum_usd
                     )
                     new_order.save()
 
@@ -214,16 +215,14 @@ class OperationsService:
             log.save()
             return None
 
-    def create_buy_order(self, preorder_id: str, position_id: str):
-        preorder_instance = Preorder.objects.get(id=preorder_id)
-        position_instance = Position.objects.get(id=position_id)
+    def create_buy_order(self, sum_btc: float):  # buy order == sell short
         rate_btc_usdt = self.get_btc_usdt_rate()
         if rate_btc_usdt == float('inf'):
             log = HedgeLog(
                 preorder=self.preorder_instance,
                 origin="create_buy_order stage rates",
                 status=STATUS_ERROR,
-                text=f"Didn't get proper rates: btc {rate_btc_usdt}; preorder_id: {preorder_id}"
+                text=f"Didn't get proper rates: btc {rate_btc_usdt}; preorder: {self.preorder_instance}"
             )
             log.save()
             return
@@ -232,10 +231,12 @@ class OperationsService:
                 preorder=self.preorder_instance,
                 origin="create_buy_order stage rates",
                 status=STATUS_SUCCESS,
-                text=f"Got rates: btc {rate_btc_usdt}; preorder_id: {preorder_id}"
+                text=f"Got rates: btc {rate_btc_usdt}; preorder: {self.preorder_instance}"
             )
             log.save()
-        btc_qty = position_instance.btc_quantity
+
+        sum_usd = float(sum_btc) * rate_btc_usdt
+        btc_qty = '%.3f' % sum_btc
         try:
             RETRY_COUNT = 5
             counter = 0
@@ -254,12 +255,13 @@ class OperationsService:
                 if new_order_gross_data[0]['ret_msg'] == 'OK' and new_order_gross_data[0]['result']:
                     order_id = new_order_gross_data[0]['result']['order_id']
                     new_order = Order(
-                        preorder=preorder_instance,
+                        preorder=self.preorder_instance,
                         order_id=order_id,
                         type=TYPE_BUY,
                         btc_quantity=btc_qty,
                         price=rate_btc_usdt + self.SPREAD,
-                        btc_rate=rate_btc_usdt
+                        btc_rate=rate_btc_usdt,
+                        sum_usd=sum_usd
                     )
                     new_order.save()
 
@@ -425,8 +427,42 @@ class OperationsService:
             )
             log.save()
 
+    def get_market_data(self):
+        try:
+            raw_pos_info = self.client.LinearPositions.LinearPositions_myPosition(
+            symbol="BTCUSDT"
+            ).result()[0]['result'][1]
 
+            position_info = {
+                'size': raw_pos_info['size'],
+                'position_value': raw_pos_info['position_value'],
+                'leverage': raw_pos_info['leverage'],
+                'entry_price': raw_pos_info['entry_price'],
+                'liq_price': raw_pos_info['liq_price'],
+                'unrealised_pnl': raw_pos_info['unrealised_pnl']
+            }
 
+            current_rate = self.get_btc_usdt_rate()
+            raw_wallet_info = self.client.Wallet.Wallet_getBalance(coin="USDT").result()[0]['result']['USDT']
+            wallet_info = {
+                'available_balance': raw_wallet_info['available_balance'],
+                'wallet_balance': raw_wallet_info['wallet_balance']
+            }
 
+            result = {
+                'rate': current_rate,
+                'position_info': position_info,
+                'wallet_info': wallet_info
+            }
 
+            return result
+        except Exception as ex:
+            log = HedgeLog(
+                preorder=self.preorder_instance,
+                origin="get_market_data",
+                status=STATUS_ERROR,
+                text=f"Exception: {ex}"
+            )
+            log.save()
+            return None
 
