@@ -56,7 +56,7 @@ class Position(models.Model):
         null=True,
         blank=True
     )
-    btc_quantity = models.DecimalField(
+    sum_btc = models.DecimalField(
         max_digits=16,
         decimal_places=12,
         null=True,
@@ -71,7 +71,7 @@ class Position(models.Model):
     comment = models.TextField(max_length=300, null=True, blank=True)
 
     def __str__(self):
-        return '%s %s %s' % (self.created_at, self.btc_quantity, self.status)
+        return '%s %s %s' % (self.created_at, self.sum_btc, self.status)
 
     class Meta:
         ordering = ['-created_at', 'preorder_id']

@@ -35,7 +35,7 @@ class HedgeLog(models.Model):
 
     def __str__(self):
         return '%s, %s, %s %s' % (
-            self.preorder.id if self.preorder else None,
+            self.preorder.preorder_id if self.preorder else None,
             self.created_at, self.origin, self.status)
 
     class Meta:

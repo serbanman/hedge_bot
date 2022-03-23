@@ -2,34 +2,31 @@ import time
 
 from celery import shared_task
 
-from ..models import HedgeLog, Preorder, Order
-from ..models.orders import STATUS_NEW, STATUS_FILLED
-from ..models.positions import STATUS_CLOSED, Position
-from ..models.hedge_logs import STATUS_SUCCESS, STATUS_ERROR
-from ..services import OperationsService
+from main.models import Order, Position
+from main.models.orders import STATUS_NEW, STATUS_FILLED
+from main.models.positions import STATUS_CLOSED
+from main.models.hedge_logs import STATUS_SUCCESS, STATUS_ERROR
+from main.services import HedgeOrdersService
 
 
 @shared_task
 def close_position(sum_btc: float, position_id: str, preorder_id: str = None):
     SLEEP_ITERATION = 10
-    if preorder_id:
-        preorder_instance = Preorder.objects.get(id=preorder_id)
-    else:
-        preorder_instance = None
 
-    log = HedgeLog(
+    service = HedgeOrdersService(preorder_id)
+    service.log(
         origin="close_position START",
         status=STATUS_SUCCESS,
         text=f"Starting on preorder_id: {preorder_id}"
     )
-    log.save()
 
-    service = OperationsService(preorder_id)
     try:
+        # for some reason sum_btc becomes str, json?
         sum_btc = float(sum_btc)
     except:
         return
-    order_id = service.create_buy_order(sum_btc=sum_btc)
+
+    order_id = service.create_order(sum_btc=sum_btc, buy=True)
     if order_id is not None:
         order_instance = Order.objects.get(id=order_id)
         service.is_order_filled(order_instance.order_id)
@@ -42,26 +39,22 @@ def close_position(sum_btc: float, position_id: str, preorder_id: str = None):
         while order_instance.status != STATUS_FILLED:
             time.sleep(SLEEP_ITERATION)
             if service.is_order_filled(order_instance.order_id):
-                log = HedgeLog(
-                    preorder=preorder_instance,
+                service.log(
                     origin="close_position task",
                     status=STATUS_SUCCESS,
                     text=f"Inside loop got order filled."
                          f"Counter {counter}; order_instance.id: {order_instance.id}"
                 )
-                log.save()
                 break
             if counter == RETRY_COUNT:
-                log = HedgeLog(
-                    preorder=preorder_instance,
+                service.log(
                     origin="close_position task",
                     status=STATUS_ERROR,
                     text=f"Inside loop exceeded counter."
                          f"Counter {counter}; order_instance.id: {order_instance.id}"
                 )
-                log.save()
                 return
-            service.order_price_handler(order_instance.order_id, 'buy')
+            service.order_price_handler(order_instance.order_id)
             counter += 1
         try:
             position_instance = Position.objects.get(id=position_id)
@@ -70,20 +63,17 @@ def close_position(sum_btc: float, position_id: str, preorder_id: str = None):
             position_instance.order_out = order_instance
             position_instance.btc_price_out = order_instance.price
             position_instance.save()
-            log = HedgeLog(
-                preorder=preorder_instance,
+
+            service.log(
                 origin="close_position task FINISH",
                 status=STATUS_SUCCESS,
                 text=f"All good"
                      f"Position id: {position_instance.id} order_instance.id: {order_instance.id}"
             )
-            log.save()
         except Exception as ex:
-            log = HedgeLog(
-                preorder=preorder_instance,
+            service.log(
                 origin="close_position task",
                 status=STATUS_ERROR,
                 text=f"Error in editing position instance"
                      f"Ex: {ex} order_instance.id: {order_instance.id}"
             )
-            log.save()

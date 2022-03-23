@@ -56,7 +56,7 @@ def get_exchange_rate(self):
 # y = client.Market.Market_symbolInfo().result()[0]['result'][0]['last_price']
 # print(x, y)
 
-from django.conf import settings
-import bybit
-client = bybit.bybit(test=True, api_key=settings.BYBIT_API, api_secret=settings.BYBIT_SECRET)
-x = {'order_id': '6a3f2a88-dc33-4b85-b5d7-737cf4a7cfd4'}
+# from django.conf import settings
+# import bybit
+# client = bybit.bybit(test=True, api_key=settings.BYBIT_API, api_secret=settings.BYBIT_SECRET)
+# x = {'order_id': '6a3f2a88-dc33-4b85-b5d7-737cf4a7cfd4'}
