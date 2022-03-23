@@ -17,6 +17,7 @@ Django==3.1
 django-celery-beat==2.2.1
 django-timezone-field==4.2.3
 djangorestframework==3.12.2
+forex-python==1.8
 fqdn==1.5.1
 idna==3.3
 isoduration==20.11.0

@@ -1,6 +1,5 @@
 from celery import shared_task
 from django.conf import settings
-import pyotp
 import bybit
 from pprint import pprint
 
