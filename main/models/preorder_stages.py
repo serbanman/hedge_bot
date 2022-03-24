@@ -17,3 +17,9 @@ class PreorderStage(models.Model):
     status_date = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=60, null=True, blank=True)
     comment = models.CharField(max_length=60, null=True, blank=True)
+
+    def __str__(self):
+        return '%s %s' % (self.status_date, self.preorder.preorder_id)
+
+    class Meta:
+        ordering = ['-status_date']

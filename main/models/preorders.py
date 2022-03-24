@@ -25,6 +25,7 @@ class Preorder(models.Model):
     status = models.CharField(max_length=60, null=True, blank=True)
     is_garant = models.BooleanField(null=True, blank=True)
     garant_status = models.CharField(max_length=60, null=True, blank=True)
+
     def __str__(self):
         return '%s %s %s' % (self.created_at, self.sum_rub, self.buyer)
 
