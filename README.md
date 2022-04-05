@@ -19,6 +19,8 @@ You would need a message broker (I prefer rabbitmq). Configure and start it as y
 would need django-celery instance. If you would like to use periodic tasks (for example, for preorder parsing module (lacking in this realization)) 
 you also would need django-celery-beat.
 
+Make migrations -> `python3 manage.py makemigrations && python3 manage.py migrate`
+
 Run Django as usual -> `python3 manage.py runserver`
 
 Run Django-Celery as usual -> `python3 manage.py celery -A hedge worker -l info`
