@@ -16,13 +16,10 @@ class PreorderSerializer(serializers.ModelSerializer):
             'location',
             'sum_rub',
             'sum_btc',
-            'product',
             'product_name',
             'size',
             'status',
             'status_text',
-            'is_garant',
-            'garant_status',
             'positions'
         )
 
@@ -46,7 +43,6 @@ class PositionSerializer(serializers.ModelSerializer):
             'is_by_hand',
             'h_preorder_id',
             'preorder_sum_rub',
-            'is_preorder_garant'
         )
 
 
