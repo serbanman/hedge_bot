@@ -22,6 +22,9 @@ class HedgeMarketDataService(HedgeRatesService):
             }
 
             current_rate = self.get_btc_usdt_rate()
+            while current_rate == float('inf'):
+                current_rate = self.get_btc_usdt_rate()
+
             raw_wallet_info = self.client.Wallet.Wallet_getBalance(
                 coin="USDT").result()[0]['result']['USDT']
             wallet_info = {
@@ -48,4 +51,16 @@ class HedgeMarketDataService(HedgeRatesService):
                 status=STATUS_ERROR,
                 text=f"Exception: {ex}"
             )
-            return None
+
+            return {}
+
+
+
+
+
+
+
+
+
+
+

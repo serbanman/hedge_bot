@@ -9,7 +9,7 @@ import time
 
 
 @shared_task
-def create_position(sum_btc, preorder_id: str = None):
+def create_position(sum_btc, preorder_id: str = None, comment=None):
     SLEEP_ITERATION = 10
     service = HedgeOrdersService(preorder_id)
     service.log(
@@ -59,13 +59,12 @@ def create_position(sum_btc, preorder_id: str = None):
             new_position = Position(
                 preorder=preorder_instance,
                 status=STATUS_OPEN,
-                order_in=order_instance,
-                btc_price_in=order_instance.price,
-                order_out=None,
-                btc_price_out=None,
                 sum_btc=order_instance.sum_btc,
+                comment=comment,
             )
             new_position.save()
+            order_instance.position = new_position
+            order_instance.save()
             service.log(
                 origin="create_position instance creation FINISH",
                 status=STATUS_SUCCESS,
@@ -79,4 +78,3 @@ def create_position(sum_btc, preorder_id: str = None):
                 text=f"Error in creating position instance"
                      f"Exception: {ex}; order_instance.id: {order_instance.id}"
             )
-

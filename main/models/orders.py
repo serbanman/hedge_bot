@@ -27,10 +27,17 @@ class Order(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     preorder = models.ForeignKey(
         'main.Preorder',
-        related_name='operations',
+        related_name='orders',
         on_delete=models.SET_NULL,
         null=True,
         blank=False
+    )
+    position = models.ForeignKey(
+        'main.Position',
+        related_name='orders',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
     )
     order_id = models.CharField(max_length=50, null=True, blank=True)
     type = models.CharField(max_length=30, null=True, blank=True, choices=TYPES)

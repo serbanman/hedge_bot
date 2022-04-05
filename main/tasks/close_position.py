@@ -33,7 +33,7 @@ def close_position(sum_btc: float, position_id: str, preorder_id: str = None):
         order_instance.refresh_from_db()
         if order_instance.status == STATUS_NEW:
             time.sleep(SLEEP_ITERATION)
-            
+
         RETRY_COUNT = 20
         counter = 0
         while order_instance.status != STATUS_FILLED:
@@ -59,9 +59,11 @@ def close_position(sum_btc: float, position_id: str, preorder_id: str = None):
         try:
             position_instance = Position.objects.get(id=position_id)
             order_instance.refresh_from_db()
+            order_instance.position = position_instance
+            order_instance.save()
+
             position_instance.status = STATUS_CLOSED
-            position_instance.order_out = order_instance
-            position_instance.btc_price_out = order_instance.price
+            position_instance.closed_at = order_instance.created_at
             position_instance.save()
 
             service.log(

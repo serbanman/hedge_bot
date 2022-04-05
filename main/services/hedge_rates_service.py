@@ -54,9 +54,9 @@ class HedgeRatesService(HedgeInitService):
                     time.sleep(5)
         except Exception as ex:
             self.log(
-                origin="get_btc_usd_date",
+                origin="get_btc_usd_rate",
                 status=STATUS_ERROR,
-                text=f"GOT EXCEPTION IN get_btc_usd_date: {ex}"
+                text=f"GOT EXCEPTION IN get_btc_usd_rate: {ex}"
             )
 
         return rate
