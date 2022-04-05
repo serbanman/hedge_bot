@@ -3,9 +3,9 @@ from celery import shared_task
 from .close_position import close_position
 from .create_position import create_position
 from main.models.hedge_logs import STATUS_ERROR, STATUS_SUCCESS
-from main.models import HedgeLog, Position, Preorder
+from main.models import Position
 from main.services import HedgeLogger
-from ..models.positions import STATUS_CLOSED
+from main.models.positions import STATUS_CLOSED, STATUS_OPEN
 
 
 @shared_task
@@ -41,13 +41,21 @@ def close_position_handler(position_id):
 def open_position_handler_auto(preorder_id: str):
 
     log = HedgeLogger(preorder_id)
+    preorder_instance = log.instantiate()
+    positions = preorder_instance.positions.filter(status=STATUS_OPEN)
+    if positions:
+        log.log(
+            origin="positions_handler START",
+            status=STATUS_ERROR,
+            text=f"Starting on: preorder_id = {preorder_id}, open position exists: {positions}"
+        )
     log.log(
         origin="positions_handler START",
         status=STATUS_SUCCESS,
         text=f"Starting on: preorder_id = {preorder_id}"
     )
 
-    preorder_instance = log.instantiate()
+
     try:
         sum_btc = preorder_instance.sum_btc
         if sum_btc <= 0:
@@ -64,7 +72,7 @@ def open_position_handler_auto(preorder_id: str):
 
 
 @shared_task
-def open_position_handler_manual(sum_btc):
+def open_position_handler_manual(sum_btc, comment=None):
     log = HedgeLogger()
     if sum_btc > 0:
         log.log(
@@ -79,4 +87,15 @@ def open_position_handler_manual(sum_btc):
             text=f"Btc sum is incorrect: {sum_btc}"
             )
 
-    create_position.delay(sum_btc=sum_btc)
+    create_position.delay(sum_btc=sum_btc, comment=comment)
+
+
+
+
+
+
+
+
+
+
+
