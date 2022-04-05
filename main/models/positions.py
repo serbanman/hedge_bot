@@ -24,6 +24,7 @@ def get_random_id():
 
     return rid
 
+
 class Position(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -113,31 +114,5 @@ class Position(models.Model):
         else:
             return None
 
-    @property
-    def is_preorder_garant(self):
-        if self.preorder:
-            return self.preorder.is_garant
-        else:
-            return None
-
-
     class Meta:
         ordering = ['-created_at', 'preorder_id']
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

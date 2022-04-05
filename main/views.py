@@ -46,13 +46,6 @@ class PositionsViewSet(GenericViewSet, mixins.ListModelMixin, mixins.RetrieveMod
             elif is_by_hand == 'false':
                 qs = qs.exclude(preorder=None)
 
-        is_preorder_garant = self.request.query_params.get("is_preorder_garant", None)
-        if is_preorder_garant is not None:
-            if is_preorder_garant == 'true':
-                qs = qs.filter(preorder__is_garant=True)
-            elif is_preorder_garant == 'false':
-                qs = qs.filter(preorder__is_garant=False)
-
         sort_by = self.request.query_params.get("sortBy", None)
         sort_desc = self.request.query_params.get("sortDesc", None)
         if sort_by is not None and sort_desc is not None:
@@ -60,7 +53,7 @@ class PositionsViewSet(GenericViewSet, mixins.ListModelMixin, mixins.RetrieveMod
             try:
                 if sort_by not in [
                     'btc_price_in', 'btc_price_out', 'is_by_hand',
-                    'h_preorder_id', 'preorder_sum_rub', 'is_preorder_garant'
+                    'preorder_sum_rub'
                 ]:
                     qs = qs.order_by(operator + sort_by)
             except Exception as ex:
